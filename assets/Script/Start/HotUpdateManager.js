@@ -69,8 +69,14 @@ var HotUpdateManager = cc.Class({
         }
 
         if (this._checking) {
-            cc.log('Please wait for the last check...');
-            this._replyHotUpdateEvent('Please wait for the last check...');
+            cc.log('Please wait for the check work...');
+            this._replyHotUpdateEvent('Please wait for the check work...');
+            return;
+        }
+
+        if (this._updating) {
+            cc.log('Please wait for the update work...');
+            this._replyHotUpdateEvent('Please wait for the update work...');
             return;
         }
 
