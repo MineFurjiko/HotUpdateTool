@@ -20,32 +20,6 @@ return c[t].exports;
 for (var d = "function" == typeof require && require, e = 0; e < o.length; e++) l(o[e]);
 return l;
 }({
-FileDownloader: [ function(e, t, s) {
-"use strict";
-cc._RF.push(t, "8efe0I9rGJPf40kHEGslwdv", "FileDownloader");
-var a = {
-download: function(e, t) {
-var s = new XMLHttpRequest();
-s.onreadystatechange = function() {
-4 === s.readyState && (200 === s.status ? t(s.response) : t(null));
-};
-s.open("GET", e, !0);
-s.responseType = "arraybuffer";
-s.send();
-},
-saveFile: function(e, t, s) {
-"/" != t.charAt(t.length - 1) && (t += "/");
-jsb.fileUtils.isDirectoryExist(t) || jsb.fileUtils.createDirectory(t);
-if ("undefined" != typeof e) {
-var a = t + s;
-if (jsb.fileUtils.writeDataToFile(new Uint8Array(e), a)) return a;
-}
-return null;
-}
-};
-t.exports = a;
-cc._RF.pop();
-}, {} ],
 HotUpdateManager: [ function(e, t, s) {
 "use strict";
 cc._RF.push(t, "2d822IyYZ1PXK5i+dpKeyl5", "HotUpdateManager");
@@ -339,7 +313,11 @@ hotUpdateManager: n,
 logger: cc.Label,
 checkBtn: cc.Node,
 updateBtn: cc.Node,
-retryBtn: cc.Node
+retryBtn: cc.Node,
+fileProgress: cc.ProgressBar,
+byteProgress: cc.ProgressBar,
+fileLabel: cc.Label,
+byteLabel: cc.Label
 },
 onLoad: function() {
 this.hotUpdateManager.addHotUpdateEventCallback(this.hotUpdateEventHandler.bind(this));
@@ -379,6 +357,8 @@ break;
 case jsb.EventAssetsManager.NEW_VERSION_FOUND:
 this.logger.string += "\n(Check) New version found, please try to update.";
 this.logger.string += "\n(Check) 检测到新版本.";
+this.fileProgress.progress = 0;
+this.byteProgress.progress = 0;
 break;
 
 default:
@@ -389,6 +369,10 @@ _updateEventHandler: function(e) {
 cc.log("Update Code: " + e.getEventCode());
 switch (e.getEventCode()) {
 case jsb.EventAssetsManager.UPDATE_PROGRESSION:
+this.fileProgress.progress = e.getPercentByFile();
+this.byteProgress.progress = e.getPercent();
+this.fileLabel.string = "files: " + e.getDownloadedFiles() + " / " + e.getTotalFiles();
+this.byteLabel.string = "bytes: " + e.getDownloadedBytes() + " / " + e.getTotalBytes();
 var t = e.getMessage();
 t && (this.logger.string += "\n(Update) Updated file: " + t);
 break;
@@ -454,34 +438,6 @@ cc.director.loadScene("Main");
 });
 cc._RF.pop();
 }, {} ],
-Test: [ function(e, t, s) {
-"use strict";
-cc._RF.push(t, "da595sewG9Axrmv3eH2nGYw", "Test");
-var n = e("FileDownloader");
-cc.Class({
-extends: cc.Component,
-properties: {
-logger: cc.Label,
-videoPlayer: cc.VideoPlayer
-},
-start: function() {
-var a = this;
-n.download("http://192.168.1.2/AndroidDisplay/Video/video1.mp4", function(e) {
-var t = jsb.fileUtils.getWritablePath() + "video/", s = n.saveFile(e, t, "video1.mp4");
-a.logger.string += "\n" + s;
-cc.loader.load(s, function(e, t) {
-e && (a.logger.string += "\nerr:" + e);
-a.videoPlayer.resourceType = cc.VideoPlayer.ResourceType.LOCAL;
-a.videoPlayer.clip = t;
-a.videoPlayer.play();
-});
-});
-}
-});
-cc._RF.pop();
-}, {
-FileDownloader: "FileDownloader"
-} ],
 videoPlayerHandler: [ function(e, t, s) {
 "use strict";
 cc._RF.push(t, "603f4d58xlBT448pmkNdl0+", "videoPlayerHandler");
@@ -512,4 +468,4 @@ this.logger.node.active && (this.logger.string += "\n播放完成");
 });
 cc._RF.pop();
 }, {} ]
-}, {}, [ "FileDownloader", "Test", "videoPlayerHandler", "HotUpdateManager", "HotUpdateUI", "SceneManager" ]);
+}, {}, [ "videoPlayerHandler", "HotUpdateManager", "HotUpdateUI", "SceneManager" ]);
