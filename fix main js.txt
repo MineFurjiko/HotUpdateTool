@@ -1,0 +1,7 @@
+// 在 main.js 的 boot() 之前添加如下代码
+if (cc.sys.isNative) {
+    var hotUpdateSearchPaths = cc.sys.localStorage.getItem('HotUpdateSearchPaths');
+    if (hotUpdateSearchPaths) {
+        jsb.fileUtils.setSearchPaths(JSON.parse(hotUpdateSearchPaths));
+    }
+}
