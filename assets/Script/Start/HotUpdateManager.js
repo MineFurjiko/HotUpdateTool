@@ -10,6 +10,8 @@ var HotUpdateManager = cc.Class({
     properties: {
         storageFolder: '',
         manifestUrl: cc.RawAsset,
+        fix: false,
+        fixHost: '',
 
         _checking: false,
         _checked: false,
@@ -27,27 +29,76 @@ var HotUpdateManager = cc.Class({
      * use this for initialization
      */
     init() {
+        // Reset init
+        this._checking = false;
+        this._checked = false;
+        this._checkResult = -1;
+        this._updating = false;
+        this._canRetry = false;
+        this._initialized = false;
+        this._loadLocalManifestSucceed = false;
+
         this._creatAssetsManager(this.storageFolder, this._versionCompareHandle);
-        this._loadLocalManifest(
-            this.manifestUrl,
-            (rs) => {
-                if (rs == null) {
-                    this._loadLocalManifestSucceed = false;
 
-                    cc.log('Failed to load local manifest ...');
-                    this._replyHotUpdateEvent('Failed to load local manifest ...');
-                } else {
-                    this._loadLocalManifestSucceed = true;
+        if (this.fix) {
+            cc.log('Start to fix local manifest...');
+            this._replyHotUpdateEvent('Start to fix local manifest...');
 
-                    cc.log('Local version : ' + rs.getVersion());
-                    this._replyHotUpdateEvent('Local version : ' + rs.getVersion());
+            //fix manifest url
+            cc.loader.load(this.manifestUrl, (err, res) => {
+                if (err) {
+                    cc.log(err);
+                    this._replyHotUpdateEvent(err);
+                    return;
                 }
-            }
-        );
 
-        this._initialized = true;
+                let temp = JSON.parse(res);
+                temp.packageUrl = 'http://' + this.fixHost + '/videoPlayer/remote-assets/';
+                temp.remoteManifestUrl = 'http://' + this.fixHost + '/videoPlayer/remote-assets/project.manifest';
+                temp.remoteVersionUrl = 'http://' + this.fixHost + '/videoPlayer/remote-assets/version.manifest';
+                let fixedManifestStr = JSON.stringify(temp);
+                cc.log(fixedManifestStr);
+
+                this._loadCustomManifest(
+                    new jsb.Manifest(fixedManifestStr, this._storagePath),
+                    (rs) => {
+                        if (rs == null) {
+                            this._loadLocalManifestSucceed = false;
+                            cc.log('Failed to load local manifest ...');
+                            this._replyHotUpdateEvent('Failed to load local manifest ...');
+                        } else {
+                            this._loadLocalManifestSucceed = true;
+                            cc.log('Local version : ' + rs.getVersion());
+                            this._replyHotUpdateEvent('Local version : ' + rs.getVersion());
+                        }
+                    }
+                );
+                this._initialized = true;
+            });
+            return;
+        } else {
+            cc.log('Start to load local manifest...');
+            this._replyHotUpdateEvent('Start to load local manifest...');
+
+            this._loadLocalManifest(
+                this.manifestUrl,
+                (rs) => {
+                    if (rs == null) {
+                        this._loadLocalManifestSucceed = false;
+
+                        cc.log('Failed to load local manifest ...');
+                        this._replyHotUpdateEvent('Failed to load local manifest ...');
+                    } else {
+                        this._loadLocalManifestSucceed = true;
+
+                        cc.log('Local version : ' + rs.getVersion());
+                        this._replyHotUpdateEvent('Local version : ' + rs.getVersion());
+                    }
+                }
+            );
+            this._initialized = true;
+        }
     },
-
 
     getLocalVersion() {
         if (!this._initialized) {
@@ -318,6 +369,25 @@ var HotUpdateManager = cc.Class({
         if (!this._am) retrun;
 
         this._am.loadLocalManifest(manifestUrl);
+
+        if (callback) {
+            if (!this._am.getLocalManifest() || !this._am.getLocalManifest().isLoaded()) {
+                callback(null);
+                return;
+            }
+            callback(this._am.getLocalManifest());
+        }
+    },
+
+    /**
+     * load custom manifest
+     * @param {cc.RawAsset} manifestUrl 
+     * @param {function} callback 
+     */
+    _loadCustomManifest(manifestUrl, callback = null) {
+        if (!this._am) retrun;
+
+        this._am.loadLocalManifest(manifestUrl, this._storagePath);
 
         if (callback) {
             if (!this._am.getLocalManifest() || !this._am.getLocalManifest().isLoaded()) {

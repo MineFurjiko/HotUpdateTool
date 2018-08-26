@@ -8,24 +8,35 @@ cc.Class({
     properties: {
         hotUpdateManager: HotUpdateManager,
         logger: cc.Label,
+        loadBtn: cc.Node,
         checkBtn: cc.Node,
         updateBtn: cc.Node,
         retryBtn: cc.Node,
         fileProgress: cc.ProgressBar,
         byteProgress: cc.ProgressBar,
         fileLabel: cc.Label,
-        byteLabel: cc.Label
+        byteLabel: cc.Label,
+        fixToggle: cc.Toggle,
+        hostInput: cc.EditBox,
+        _needReload: false
     },
 
     // LIFE-CYCLE CALLBACKS:
     onLoad() {
         this.hotUpdateManager.addHotUpdateEventCallback(this.hotUpdateEventHandler.bind(this));
 
-        this.hotUpdateManager.init();
+        this.hotUpdateManager.fix = this.fixToggle.isChecked;
+        this.hotUpdateManager.fixHost = this.hostInput.string;
     },
 
-    start() {
+    onFixToggleValueChange(toggle, customEventData) {
+        this.hotUpdateManager.fix = toggle.isChecked;
+        this._needReload = true;
+    },
 
+    onEditingDidEnded(editbox, customEventData) {
+        this.hotUpdateManager.fixHost = editbox.string;
+        this._needReload = true;
     },
 
     hotUpdateEventHandler(event, eventType) {
@@ -128,18 +139,36 @@ cc.Class({
     },
 
     onCheckButtomClick() {
+        if (this._needReload) {
+            this._notifyEventHanlder('Please reload ...');
+            return;
+        }
         this.hotUpdateManager.checkUpdate();
-
     },
 
     onUpdateButtomClick() {
+        if (this._needReload) {
+            this._notifyEventHanlder('Please reload ...');
+            return;
+        }
         this.hotUpdateManager.hotUpdate();
     },
 
     onRetryButtomClick() {
+        if (this._needReload) {
+            this._notifyEventHanlder('Please reload ...');
+            return;
+        }
+
         this.logger.string += '\nRetry failed Assets...';
 
         this.retryBtn.active = false;
         this.hotUpdateManager.retry();
     },
+
+    onLoadButtomClick() {
+        this.logger.string = 'Log:';
+        this.hotUpdateManager.init();
+        this._needReload = false;
+    }
 });
