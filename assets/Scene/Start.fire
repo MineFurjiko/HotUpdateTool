@@ -1488,7 +1488,7 @@
     "manifestUrl": {
       "__uuid__": "8e281ff9-a130-4eba-8bb8-3ceee4403757"
     },
-    "fix": true,
+    "fix": false,
     "fixHost": "127.0.0.1",
     "_checking": false,
     "_checked": false,
@@ -2957,7 +2957,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 330,
+      "width": 300,
       "height": 40
     },
     "_rotationX": 0,
