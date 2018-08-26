@@ -75,6 +75,8 @@
     "manifestUrl": {
       "__uuid__": "8e281ff9-a130-4eba-8bb8-3ceee4403757"
     },
+    "fix": false,
+    "fixHost": "127.0.0.1",
     "_checking": false,
     "_checked": false,
     "_checkResult": -1,
@@ -99,7 +101,7 @@
       "__id__": 1
     },
     "asset": {
-      "__id__": 0
+      "__uuid__": "92408cfd-5991-47a6-a6af-0cf2950ce636"
     },
     "fileId": "26M9j2FQ5IDbjNTfXVuWNl",
     "sync": false
